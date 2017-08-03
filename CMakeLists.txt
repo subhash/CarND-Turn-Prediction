@@ -24,4 +24,4 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(nb_classifier ${sources})
 
 
-target_link_libraries(nb_classifier z ssl uv uWS)
+target_link_libraries(nb_classifier z ssl uv uWS python)

@@ -17,6 +17,13 @@ GNB::GNB() {
 
 GNB::~GNB() {}
 
+
+vector<double> extract_features(vector<double> data) {
+  double s = data[0], d = data[1], s_dot = data[2], d_dot = data[3];
+  return {  s, fmod(d, 4.0), s_dot, d_dot };
+}
+
+
 double average(vector<double> v) {
   double sum = std::accumulate(v.begin(), v.end(), 0.0);
   return sum / v.size();
@@ -27,7 +34,7 @@ double stddev(vector<double> v, double mean) {
   return sqrt( diff / v.size());
 }
 
-void GNB::train(vector<vector<double>> data, vector<string> labels)
+vector<vector<vector<double>>> GNB::train(vector<vector<double>> data, vector<string> labels)
 {
 
   /*
@@ -50,22 +57,19 @@ void GNB::train(vector<vector<double>> data, vector<string> labels)
   //vector<double> lf[3][4];
   vector<vector<vector<double>>> lf(n_labels, vector<vector<double>>(n_features));
 
-  //vector<vector<double>> features(data[0].size());
 
   for (int i=0; i<data.size(); i++) {
     int label_index = find(possible_labels.begin(), possible_labels.end(), labels[i]) - possible_labels.begin();
 
-    double s = data[i][0], d = data[i][1], s_dot = data[i][2], d_dot = data[i][3];
-    lf[label_index][0].push_back(s);
-    lf[label_index][1].push_back(d);
-    lf[label_index][2].push_back(s_dot);
-    lf[label_index][3].push_back(d_dot);
+    auto features = extract_features(data[i]);
+    for (int f=0; f<n_features; f++) {
+      lf[label_index][f].push_back(features[f]);
+    }
   }
 
   for (int l=0; l<lf.size(); l++) {
     for (int f=0; f<lf[l].size(); f++) {
       auto& feature = lf[l][f];
-      cout << possible_labels[l] << " - " << feature.size() << endl;
       double mean = average(feature);
       double sd = stddev(feature, mean);
       stat[l][f].push_back(mean);
@@ -73,13 +77,12 @@ void GNB::train(vector<vector<double>> data, vector<string> labels)
     }
   }
 
-  //std::cout << stddev({1,2,3,4,5}, 3);
 
-  std::cout << stat.size() << std::endl;
+  return lf;
 
 }
 
-string GNB::predict(vector<double> sample)
+std::pair<string, double> GNB::predict(vector<double> sample)
 {
   /*
     Once trained, this method is called and expected to return
@@ -97,7 +100,7 @@ string GNB::predict(vector<double> sample)
     """
     # TODO - complete this
   */
-  vector<double> features = sample;
+  vector<double> features = extract_features(sample);
   vector<double> probs;
   for(int l=0; l<n_labels; l++) {
     double pdf = 1.0;
@@ -108,7 +111,8 @@ string GNB::predict(vector<double> sample)
     probs.push_back(pdf);
   }
   int mx = max_element(probs.begin(), probs.end()) - probs.begin();
+  double total_prob = std::accumulate(probs.begin(), probs.end(), 0.0);
 
-  return this->possible_labels[mx];
+  return std::make_pair(this->possible_labels[mx], probs[mx]/total_prob);
 
 }

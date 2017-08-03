@@ -5,6 +5,7 @@
 #include <fstream>
 #include <math.h>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -30,9 +31,9 @@ public:
   */
   virtual ~GNB();
 
-  void train(vector<vector<double> > data, vector<string>  labels);
+  vector<vector<vector<double>>> train(vector<vector<double> > data, vector<string>  labels);
 
-    string predict(vector<double>);
+  std::pair<string, double> predict(vector<double>);
 
 
 private:
@@ -40,7 +41,6 @@ private:
     const int n_features = 4;
     vector<vector<vector<double>>> stat = vector<vector<vector<double>>>(n_labels, vector<vector<double>>(n_features));
 
-    //vector<double> extract_features(vector<double> data);
 
 };
 
